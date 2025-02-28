@@ -1,6 +1,14 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import QueryClientProvider from "@/app/providers/QueryClientProvider"
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter'
 import "./globals.css";
+import Nav from "./components/nav/Nav";
+import "@fortawesome/fontawesome-svg-core/styles.css";
+import { config } from "@fortawesome/fontawesome-svg-core";
+import { ThemeProvider } from "./providers/ThemeProvider";
+config.autoAddCss = false;
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,7 +35,20 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <ThemeProvider>
+          <AppRouterCacheProvider>
+            <QueryClientProvider>
+              <Nav />
+              <main>
+                {children}
+              </main>
+              <ReactQueryDevtools
+                initialIsOpen={false}
+                buttonPosition="bottom-left"
+              />
+            </QueryClientProvider>
+          </AppRouterCacheProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
