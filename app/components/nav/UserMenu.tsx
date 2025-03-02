@@ -2,15 +2,14 @@
 
 import { useState } from "react";
 import { Avatar } from "@mui/material";
-import { User } from "@supabase/supabase-js";
 import UserDrawer from "./UserDrawer";
+import { useUser } from "@/app/providers/UserProvider";
 
-interface Props {
-  user: User;
-}
-
-export default function UserMenu({ user }: Props) {
+export default function UserMenu() {
+  const { user, loading } = useUser();
   const [openDrawer, setOpenDrawer] = useState(false);
+
+  if (loading) return null;
 
   const toggleDrawer = (newOpen: boolean) => {
     setOpenDrawer(newOpen);

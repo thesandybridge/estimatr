@@ -7,25 +7,17 @@ const fetchProject = async (uuid: string) => {
   const { data: user, error: userError } = await supabase.auth.getUser();
   if (userError || !user) throw new Error("User not authenticated");
 
-  const email = user.user.email;
-  if (!email) throw new Error("User email not found");
+  const { data: orgData } = await supabase
+    .from("org_members")
+    .select("org_id")
+    .eq("member_id", user.user.id)
+    .single();
 
-  let orgId: string | null = null;
-
-  if (!email.endsWith("@gmail.com")) {
-    const { data: orgData, error: orgError } = await supabase
-      .from("org_members")
-      .select("org_id")
-      .eq("member_id", user.user.id)
-      .single();
-
-    if (!orgError && orgData) {
-      orgId = orgData.org_id;
-    }
-  }
+  const orgId = orgData?.org_id || null;
 
   let query = supabase.from("projects").select("*").eq("uuid", uuid).single();
 
+  // If user has an org, filter by org_id
   if (orgId) {
     query = query.eq("org_id", orgId);
   } else {
@@ -34,7 +26,6 @@ const fetchProject = async (uuid: string) => {
 
   const { data, error } = await query;
   if (error) throw new Error(error.message);
-
   return data;
 };
 

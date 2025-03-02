@@ -2,20 +2,35 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import { Extension } from '@tiptap/core';
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Popover, SpeedDial, SpeedDialAction, SpeedDialIcon, TextField } from '@mui/material';
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import { Extension } from "@tiptap/core";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Popover,
+  SpeedDial,
+  SpeedDialAction,
+  SpeedDialIcon,
+  TextField,
+} from "@mui/material";
 import { DateTimePicker } from "@mui/x-date-pickers";
 import dayjs, { Dayjs } from "dayjs";
 
 import useFetchProject from "../../hooks/useFetchProject";
 import useUpdateProject from "../../hooks/useUpdateProject";
+import useFetchUserOrg from "../../hooks/useFetchUserOrg"; // New hook to check if user is in an org
 
 import styles from "./styles.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCog, faTrashCan } from "@fortawesome/free-solid-svg-icons";
+import { faCog, faTrashCan, faUserPlus } from "@fortawesome/free-solid-svg-icons";
 import { useDeleteProject } from "../../hooks/useDeleteProject";
+import AddProjectMemberDialog from "./AddProjectMemberDialogue";
+import ProjectMembers from "./ProjectMembers";
 
 interface Props {
   uuid: string;
@@ -25,12 +40,14 @@ export default function ProjectDetails({ uuid }: Props) {
   const { data: project, isPending } = useFetchProject(uuid);
   const { mutate: updateProject } = useUpdateProject();
   const { mutate: deleteProject, isSuccess } = useDeleteProject();
+  const { data: userOrg, isLoading: isOrgLoading } = useFetchUserOrg(); // Check if user is in an org
   const router = useRouter();
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [dateAnchorEl, setDateAnchorEl] = useState<HTMLElement | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
+  const [isAddMemberDialogOpen, setIsAddMemberDialogOpen] = useState(false);
 
   const handleOpenDeleteDialog = () => {
     setIsDeleteDialogOpen(true);
@@ -49,21 +66,20 @@ export default function ProjectDetails({ uuid }: Props) {
   };
 
   const EnterKeyHandler = Extension.create({
-    name: 'enterKeyHandler',
+    name: "enterKeyHandler",
     addKeyboardShortcuts() {
       return {
-        'Enter': () => {
+        Enter: () => {
           handleTitleSubmit();
           return true;
         },
-      }
+      };
     },
   });
 
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        // Disable everything except heading
         paragraph: false,
         hardBreak: false,
         horizontalRule: false,
@@ -76,34 +92,28 @@ export default function ProjectDetails({ uuid }: Props) {
         bold: false,
         italic: false,
         strike: false,
-        // Only allow h1
-        heading: {
-          levels: [1]
-        }
+        heading: { levels: [1] },
       }),
-      EnterKeyHandler
+      EnterKeyHandler,
     ],
     editorProps: {
-      attributes: {
-        class: styles.titleEditor,
-      },
+      attributes: { class: styles.titleEditor },
     },
     onCreate: ({ editor }) => {
-      // Force content to be h1 on creation
       editor.commands.setHeading({ level: 1 });
     },
   });
 
   useEffect(() => {
     if (project?.name && editor && !isEditingTitle) {
-      editor.commands.setContent('');
+      editor.commands.setContent("");
       editor.commands.setHeading({ level: 1 });
       editor.commands.insertContent(project.name);
     }
   }, [project?.name, editor, isEditingTitle]);
 
   useEffect(() => {
-    if ((!isPending && !project || isSuccess) ) {
+    if ((!isPending && !project) || isSuccess) {
       router.replace("/projects");
     }
   }, [isPending, project, router, isSuccess]);
@@ -121,7 +131,7 @@ export default function ProjectDetails({ uuid }: Props) {
     if (newTitle !== project.name) {
       updateProject({
         projectId: uuid,
-        data: { name: newTitle }
+        data: { name: newTitle },
       });
     }
     setIsEditingTitle(false);
@@ -132,27 +142,25 @@ export default function ProjectDetails({ uuid }: Props) {
 
     updateProject({
       projectId: uuid,
-      data: { deadline: newDate.toISOString() }
+      data: { deadline: newDate.toISOString() },
     });
   };
 
-  if (isPending) return <p>Loading...</p>;
+  if (isPending || isOrgLoading) return <p>Loading...</p>;
   if (!project) return null;
 
   return (
     <div className={styles.projectDetails}>
       {isEditingTitle ? (
-        <EditorContent
-          editor={editor}
-          onBlur={handleTitleSubmit}
-        />
+        <EditorContent editor={editor} onBlur={handleTitleSubmit} />
       ) : (
-        <h1
-          onClick={() => setIsEditingTitle(true)}
-          className={styles.editableTitle}
-        >
+        <h1 onClick={() => setIsEditingTitle(true)} className={styles.editableTitle}>
           {project.name}
         </h1>
+      )}
+
+      {userOrg && (
+        <ProjectMembers projectId={project.uuid} />
       )}
 
       <time
@@ -160,30 +168,19 @@ export default function ProjectDetails({ uuid }: Props) {
         dateTime={project.deadline}
         onClick={(e) => setDateAnchorEl(e.currentTarget)}
       >
-        Due Date: {project.deadline ?
-          dayjs(project.deadline).format("MMM D, YYYY")
-          : "N/A"
-        }
+        Due Date: {project.deadline ? dayjs(project.deadline).format("MMM D, YYYY") : "N/A"}
       </time>
 
       <Popover
         open={Boolean(dateAnchorEl)}
         anchorEl={dateAnchorEl}
         onClose={() => setDateAnchorEl(null)}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'left',
-        }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
       >
         <DateTimePicker
-          value={project.deadline ? dayjs(project.deadline): null}
+          value={project.deadline ? dayjs(project.deadline) : null}
           onChange={handleDateChange}
-          slotProps={{
-            textField: {
-              size: "small",
-              variant: "outlined",
-            },
-          }}
+          slotProps={{ textField: { size: "small", variant: "outlined" } }}
         />
       </Popover>
 
@@ -195,40 +192,51 @@ export default function ProjectDetails({ uuid }: Props) {
         <SpeedDialAction
           onClick={handleOpenDeleteDialog}
           icon={<FontAwesomeIcon icon={faTrashCan} />}
-          slotProps={{
-            tooltip: {
-              title: "Delete Project"
-            }
-          }}
+          slotProps={{ tooltip: { title: "Delete Project" } }}
         />
+
+        {/* Show Add Members button only if the user is in an org */}
+        {userOrg && (
+          <SpeedDialAction
+            onClick={() => setIsAddMemberDialogOpen(true)}
+            icon={<FontAwesomeIcon icon={faUserPlus} />}
+            slotProps={{ tooltip: { title: "Add Members" } }}
+          />
+        )}
       </SpeedDial>
 
-      <Dialog open={isDeleteDialogOpen} onClose={handleCloseDeleteDialog}>
-        <DialogTitle>Confirm Project Deletion</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Type the project name <strong>{project?.name}</strong> to confirm deletion:
-          </DialogContentText>
-          <TextField
-            value={confirmText}
-            onChange={(e) => setConfirmText(e.target.value)}
-            fullWidth
+      {userOrg && (
+        <>
+          <Dialog open={isDeleteDialogOpen} onClose={handleCloseDeleteDialog}>
+            <DialogTitle>Confirm Project Deletion</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                Type the project name <strong>{project?.name}</strong> to confirm deletion:
+              </DialogContentText>
+              <TextField
+                value={confirmText}
+                onChange={(e) => setConfirmText(e.target.value)}
+                fullWidth
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseDeleteDialog} color="primary">
+                Cancel
+              </Button>
+              <Button onClick={handleConfirmDelete} color="error" disabled={confirmText !== project?.name}>
+                Delete
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          <AddProjectMemberDialog
+            open={isAddMemberDialogOpen}
+            onClose={() => setIsAddMemberDialogOpen(false)}
+            projectId={uuid}
+            ownerId={project.owner_id}
           />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDeleteDialog} color="primary">
-            Cancel
-          </Button>
-          <Button
-            onClick={handleConfirmDelete}
-            color="error"
-            disabled={confirmText !== project?.name}
-          >
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+        </>
+      )}
     </div>
   );
 }
-

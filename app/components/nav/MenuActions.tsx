@@ -1,18 +1,18 @@
 "use client";
 
-import { Box, Divider, ListItemIcon, ListItemText, MenuItem, MenuList } from "@mui/material";
+import { Avatar, Box, Divider, ListItemIcon, ListItemText, MenuItem, MenuList } from "@mui/material";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faRightFromBracket } from "@fortawesome/free-solid-svg-icons";
 import { useTransition } from "react";
 import { logout } from "./actions";
 import Link from "next/link";
+import { useUser } from "@/app/providers/UserProvider";
 
-interface Props {
-  userId: string
-}
-
-export default function UserActions({ userId }: Props) {
+export default function UserActions() {
   const [isPending, startTransition] = useTransition();
+  const { user, loading } = useUser();
+
+  if (loading) return null;
 
   return (
     <MenuList
@@ -24,7 +24,7 @@ export default function UserActions({ userId }: Props) {
       }}
     >
       <MenuItem>
-        <Link href={`/user/${userId}`}>
+        <Link href={`/user/${user?.id}`}>
           Profile
         </Link>
       </MenuItem>
@@ -43,6 +43,9 @@ export default function UserActions({ userId }: Props) {
           <FontAwesomeIcon icon={faRightFromBracket} />
         </ListItemIcon>
         <ListItemText>{isPending ? "Logging out..." : "Logout"}</ListItemText>
+        <Avatar
+          src={user?.user_metadata.avatar_url}
+        />
       </MenuItem>
     </MenuList>
   );

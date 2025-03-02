@@ -7,8 +7,8 @@ import { useRouter } from "next/navigation";
 import { User } from "@supabase/supabase-js";
 
 interface UserContextType {
-  user: User | null;
-  loading: boolean;
+  user: User | null
+  loading: boolean
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
