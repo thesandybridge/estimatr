@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Extension } from '@tiptap/core';
-import { Popover, SpeedDial, SpeedDialAction, SpeedDialIcon } from '@mui/material';
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Popover, SpeedDial, SpeedDialAction, SpeedDialIcon, TextField } from '@mui/material';
 import { DateTimePicker } from "@mui/x-date-pickers";
 import dayjs, { Dayjs } from "dayjs";
 
@@ -29,10 +29,24 @@ export default function ProjectDetails({ uuid }: Props) {
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [dateAnchorEl, setDateAnchorEl] = useState<HTMLElement | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
 
-  const handleDelete = (uuid: string) => {
-    deleteProject(uuid);
-  }
+  const handleOpenDeleteDialog = () => {
+    setIsDeleteDialogOpen(true);
+    setConfirmText(""); // Reset input field on open
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setIsDeleteDialogOpen(false);
+  };
+
+  const handleConfirmDelete = () => {
+    if (confirmText === project?.name) {
+      deleteProject(uuid);
+      setIsDeleteDialogOpen(false);
+    }
+  };
 
   const EnterKeyHandler = Extension.create({
     name: 'enterKeyHandler',
@@ -176,13 +190,44 @@ export default function ProjectDetails({ uuid }: Props) {
       <SpeedDial
         ariaLabel="Project Settings"
         icon={<SpeedDialIcon icon={<FontAwesomeIcon icon={faCog} />} />}
-        sx={{ position: 'absolute', bottom: '1rem', right: '1rem'}}
+        sx={{ position: "absolute", bottom: "1rem", right: "1rem" }}
       >
         <SpeedDialAction
-          onClick={() => handleDelete(uuid)}
+          onClick={handleOpenDeleteDialog}
           icon={<FontAwesomeIcon icon={faTrashCan} />}
+          slotProps={{
+            tooltip: {
+              title: "Delete Project"
+            }
+          }}
         />
       </SpeedDial>
+
+      <Dialog open={isDeleteDialogOpen} onClose={handleCloseDeleteDialog}>
+        <DialogTitle>Confirm Project Deletion</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Type the project name <strong>{project?.name}</strong> to confirm deletion:
+          </DialogContentText>
+          <TextField
+            value={confirmText}
+            onChange={(e) => setConfirmText(e.target.value)}
+            fullWidth
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDeleteDialog} color="primary">
+            Cancel
+          </Button>
+          <Button
+            onClick={handleConfirmDelete}
+            color="error"
+            disabled={confirmText !== project?.name}
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }

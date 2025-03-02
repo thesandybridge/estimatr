@@ -1,27 +1,24 @@
 "use client"
 
 import { useState } from "react";
-import { Avatar, Popover, Box } from "@mui/material";
+import { Avatar } from "@mui/material";
 import { User } from "@supabase/supabase-js";
-import UserActions from "./MenuActions";
+import UserDrawer from "./UserDrawer";
 
 interface Props {
   user: User;
 }
 
 export default function UserMenu({ user }: Props) {
-  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const [openDrawer, setOpenDrawer] = useState(false);
 
-  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
+  const toggleDrawer = (newOpen: boolean) => {
+    setOpenDrawer(newOpen);
+  }
+
+  const handleClick = () => {
+    setOpenDrawer(true);
   };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  const open = Boolean(anchorEl);
-  const id = open ? "user-menu-popover" : undefined;
 
   return (
     <>
@@ -30,24 +27,7 @@ export default function UserMenu({ user }: Props) {
         sx={{ cursor: "pointer", border: "solid 1px black" }}
         onClick={handleClick}
       />
-      <Popover
-        id={id}
-        open={open}
-        anchorEl={anchorEl}
-        onClose={handleClose}
-        anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "right",
-        }}
-        transformOrigin={{
-          vertical: "top",
-          horizontal: "right",
-        }}
-      >
-        <Box sx={{ p: 2 }}>
-          <UserActions />
-        </Box>
-      </Popover>
+      <UserDrawer open={openDrawer} closeDrawer={() => toggleDrawer(false)} />
     </>
   );
 }

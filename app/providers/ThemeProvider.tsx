@@ -32,7 +32,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       createTheme({
         palette: {
           mode: mode ?? "dark",
-          primary: { main: "#90caf9" },
+          primary: { main: "#90FFCC" },
           secondary: { main: "#f48fb1" },
           background: { default: mode === "dark" ? "#121212" : "#ffffff" },
           text: { primary: mode === "dark" ? "#ffffff" : "#000000" },

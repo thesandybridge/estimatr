@@ -9,6 +9,7 @@ import "@fortawesome/fontawesome-svg-core/styles.css";
 import { config } from "@fortawesome/fontawesome-svg-core";
 import { ThemeProvider } from "./providers/ThemeProvider";
 import MuiDateProvider from "./providers/MuiDateProvider";
+import { UserProvider } from "./providers/UserProvider";
 config.autoAddCss = false;
 
 const geistSans = Geist({
@@ -36,22 +37,25 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider>
-          <AppRouterCacheProvider>
-            <QueryClientProvider>
-              <MuiDateProvider>
-                <Nav />
-                <main>
-                  {children}
-                </main>
-              </MuiDateProvider>
-              <ReactQueryDevtools
-                initialIsOpen={false}
-                buttonPosition="bottom-left"
-              />
-            </QueryClientProvider>
-          </AppRouterCacheProvider>
-        </ThemeProvider>
+        <QueryClientProvider>
+          <UserProvider>
+            <ThemeProvider>
+              <AppRouterCacheProvider>
+                <MuiDateProvider>
+                  <Nav />
+                  <main>
+                    {children}
+                  </main>
+                </MuiDateProvider>
+
+              </AppRouterCacheProvider>
+            </ThemeProvider>
+          </UserProvider>
+          <ReactQueryDevtools
+            initialIsOpen={false}
+            buttonPosition="bottom-left"
+          />
+        </QueryClientProvider>
       </body>
     </html>
   );

@@ -85,6 +85,11 @@ export default function CreateProject({ owner }: Props) {
         <SpeedDialAction
           onClick={handleClick}
           icon={<FontAwesomeIcon icon={faFolderPlus} />}
+          slotProps={{
+            tooltip: {
+              title: "Create Project"
+            }
+          }}
         />
       </SpeedDial>
       <Popover
