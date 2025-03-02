@@ -8,10 +8,11 @@ import Popover from '@mui/material/Popover'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
 import { Dayjs } from 'dayjs'
+import { SpeedDial, SpeedDialAction, SpeedDialIcon } from '@mui/material'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faFolderPlus } from '@fortawesome/free-solid-svg-icons'
 
 
 interface Props {
@@ -76,9 +77,16 @@ export default function CreateProject({ owner }: Props) {
 
   return (
     <>
-      <Button variant="contained" onClick={handleClick}>
-        Create Project
-      </Button>
+      <SpeedDial
+        ariaLabel='Project Actions'
+        icon={<SpeedDialIcon />}
+        sx={{ position: 'absolute', bottom: '1rem', right: '1rem'}}
+      >
+        <SpeedDialAction
+          onClick={handleClick}
+          icon={<FontAwesomeIcon icon={faFolderPlus} />}
+        />
+      </SpeedDial>
       <Popover
         id={id}
         open={open}
@@ -108,16 +116,14 @@ export default function CreateProject({ owner }: Props) {
               required
               margin="normal"
             />
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DateTimePicker
-                label="Due Date"
-                onChange={handleDateChange}
-                value={formData.deadline}
-                slotProps={{
-                  textField: { fullWidth: true, required: true, margin: 'normal' },
-                }}
-              />
-            </LocalizationProvider>
+            <DateTimePicker
+              label="Due Date"
+              onChange={handleDateChange}
+              value={formData.deadline}
+              slotProps={{
+                textField: { fullWidth: true, required: false, margin: 'normal' },
+              }}
+            />
             <Button
               type="submit"
               disabled={isPending}

@@ -11,17 +11,16 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [mode, setMode] = useState<PaletteMode>("dark");
+  const [mode, setMode] = useState<PaletteMode | null>(null);
 
   useEffect(() => {
-    const storedMode = localStorage.getItem("theme") as PaletteMode;
-    if (storedMode) {
-      setMode(storedMode);
-    }
+    const storedMode = (localStorage.getItem("theme") as PaletteMode) || "dark";
+    setMode(storedMode);
   }, []);
 
   const toggleTheme = () => {
     setMode((prevMode) => {
+      if (!prevMode) return "dark";
       const newMode = prevMode === "dark" ? "light" : "dark";
       localStorage.setItem("theme", newMode);
       return newMode;
@@ -32,7 +31,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     () =>
       createTheme({
         palette: {
-          mode,
+          mode: mode ?? "dark",
           primary: { main: "#90caf9" },
           secondary: { main: "#f48fb1" },
           background: { default: mode === "dark" ? "#121212" : "#ffffff" },
@@ -41,6 +40,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       }),
     [mode]
   );
+
+  // 🔥 Avoid rendering anything until mode is initialized to prevent hydration errors
+  if (mode === null) return null;
 
   return (
     <ThemeContext.Provider value={{ mode, toggleTheme }}>

@@ -30,7 +30,10 @@ export default function Projects({userId}) {
                 </Link>
               </TableCell>
               <TableCell align='right'>
-                {dayjs(project.deadline).format("MMM D, YYYY")}
+                {project.deadline ?
+                  dayjs(project.deadline).format("MMM D, YYYY")
+                  : "N/A"
+                }
               </TableCell>
               <TableCell align='right'>
                 {project.owner === userId && (

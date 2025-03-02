@@ -4,3 +4,28 @@
   gap: 1rem;
   align-items: center;
 }
+
+.editableTitle {
+  cursor: text;
+}
+
+.editableTitle:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.titleEditor {
+  border-radius: 4px;
+  outline: none;
+}
+
+.projectDate {
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.projectDate:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+

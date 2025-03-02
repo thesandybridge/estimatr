@@ -8,6 +8,7 @@ import Nav from "./components/nav/Nav";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 import { config } from "@fortawesome/fontawesome-svg-core";
 import { ThemeProvider } from "./providers/ThemeProvider";
+import MuiDateProvider from "./providers/MuiDateProvider";
 config.autoAddCss = false;
 
 const geistSans = Geist({
@@ -38,10 +39,12 @@ export default function RootLayout({
         <ThemeProvider>
           <AppRouterCacheProvider>
             <QueryClientProvider>
-              <Nav />
-              <main>
-                {children}
-              </main>
+              <MuiDateProvider>
+                <Nav />
+                <main>
+                  {children}
+                </main>
+              </MuiDateProvider>
               <ReactQueryDevtools
                 initialIsOpen={false}
                 buttonPosition="bottom-left"

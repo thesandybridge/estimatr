@@ -6,3 +6,13 @@
   align-items: center;
   padding: 1rem;
 }
+
+.primaryNav {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+
+  a:hover {
+    text-decoration: underline;
+  }
+}
