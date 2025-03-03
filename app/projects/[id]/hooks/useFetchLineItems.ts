@@ -12,8 +12,6 @@ const fetchLineItems = async (projectId: string): Promise<LineItem[]> => {
   const { data: user, error: userError } = await supabase.auth.getUser();
   if (userError || !user) throw new Error("🚨 User not authenticated");
 
-  console.log("✅ Fetching line items for project:", projectId);
-
   const { data: lineItems, error: lineItemsError } = await supabase
     .from("line_items")
     .select("*")

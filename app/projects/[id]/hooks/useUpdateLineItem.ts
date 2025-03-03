@@ -62,9 +62,13 @@ export default function useUpdateLineItem() {
 
       const previousLineItems = queryClient.getQueryData<LineItem[]>(["line-items", updatedItem.project_id]);
 
-      queryClient.setQueryData(["line-items", updatedItem.project_id], (old: LineItem[] = []) =>
-        old.map((item) => (item.id === updatedItem.id ? { ...item, ...updatedItem } : item))
-      );
+      if (!previousLineItems) return;
+
+      queryClient.setQueryData(["line-items", updatedItem.project_id], (old: LineItem[] = []) => {
+        return old.map((item) =>
+          item.id === updatedItem.id ? { ...item, ...updatedItem } : item
+        );
+      });
 
       return { previousLineItems };
     },
@@ -76,10 +80,9 @@ export default function useUpdateLineItem() {
         queryClient.setQueryData(["line-items", updatedItem.project_id], context.previousLineItems);
       }
     },
-    onSettled: (_data, _error, updatedItem) => {
-      if (updatedItem.project_id) {
-        queryClient.invalidateQueries(["line-items", updatedItem.project_id]);
-      }
+    onSuccess: (_data, updatedItem) => {
+      console.log("🔄 Forcing UI order persistence...");
+      queryClient.invalidateQueries(["line-items", updatedItem.project_id], { refetchType: "none" });
     },
   });
 }

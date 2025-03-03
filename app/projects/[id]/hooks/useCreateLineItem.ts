@@ -11,12 +11,9 @@ const createLineItem = async (input: CreateLineItemInput) => {
 
   if (!input.project_id) throw new Error("🚨 Invalid project ID");
 
-  console.log("✅ Creating line item:", input);
-
   const { data: user, error: userError } = await supabase.auth.getUser();
   if (userError || !user) throw new Error("🚨 User not authenticated");
 
-  // Ensure user is a project member
   const { data: isMember, error: memberError } = await supabase
     .from("project_members")
     .select("member_id")
@@ -25,8 +22,6 @@ const createLineItem = async (input: CreateLineItemInput) => {
     .single();
 
   if (memberError || !isMember) throw new Error("🚨 User is not a member of this project");
-
-  console.log("✅ User is a valid member, inserting line item...");
 
   const { data, error } = await supabase
     .from("line_items")
@@ -47,7 +42,6 @@ const createLineItem = async (input: CreateLineItemInput) => {
     throw new Error(error.message);
   }
 
-  console.log("✅ Line item added:", data);
   return data;
 };
 
@@ -61,8 +55,6 @@ export default function useCreateLineItem() {
         console.error("🚨 Attempted to add a line item without a project ID");
         return;
       }
-
-      console.log("⚡ Optimistically updating UI with new line item:", newLineItem);
 
       await queryClient.cancelQueries(["line-items", newLineItem.project_id]);
 
@@ -88,7 +80,6 @@ export default function useCreateLineItem() {
     },
     onSettled: (_data, _error, newLineItem) => {
       if (newLineItem.project_id) {
-        console.log("🔄 Invalidating queries after mutation...");
         queryClient.invalidateQueries(["line-items", newLineItem.project_id]);
       }
     },

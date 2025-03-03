@@ -15,38 +15,24 @@ import {
 import { LineItem as LineItemType } from "@/lib/lineItems";
 import LineItem from "./LineItem";
 import useFetchLineItems from "../../../hooks/useFetchLineItems";
-import useCreateLineItem from "../../../hooks/useCreateLineItem";
 import { useProject } from "../../../providers/ProjectProvider";
 import useUpdateLineItem from "../../../hooks/useUpdateLineItem";
 import useDeleteLineItem from "../../../hooks/useDeleteLineItem";
+import AddLineItem from "./AddLineItem";
 
 const LineItems = () => {
   const { projectId } = useProject();
   const { data: lineItems, isLoading } = useFetchLineItems(projectId);
-  const { mutate: createLineItem } = useCreateLineItem();
   const { mutate: updateLineItem } = useUpdateLineItem();
   const { mutate: deleteLineItem } = useDeleteLineItem();
-
-  const handleAddNew = () => {
-    createLineItem({
-      project_id: projectId,
-      name: "",
-      start_date: null,
-      end_date: null,
-      assignee: null,
-      estimated_hours: 0,
-      complexity: 1,
-      status: "pending",
-    });
-  };
 
   const handleSave = (updatedItem: LineItemType) => {
     updateLineItem({
       id: updatedItem.id,
       project_id: projectId,
       name: updatedItem.name,
-      start_date: updatedItem.start_date.toISOString() || null,
-      end_date: updatedItem.end_date.toISOString() || null,
+      start_date: updatedItem.start_date || null,
+      end_date: updatedItem.end_date || null,
       assignee: updatedItem.assignee || null,
       estimated_hours: updatedItem.estimated_hours ?? 0,
       complexity: updatedItem.complexity ?? 1,
@@ -61,7 +47,7 @@ const LineItems = () => {
   if (isLoading) return <CircularProgress />;
 
   return (
-    <TableContainer component={Paper}>
+    <TableContainer>
       <Table>
         <TableHead>
           <TableRow>
@@ -80,9 +66,7 @@ const LineItems = () => {
           ))}
         </TableBody>
       </Table>
-      <Button onClick={handleAddNew} variant="contained" color="primary" sx={{ m: 2 }}>
-        Add Line Item
-      </Button>
+      <AddLineItem />
     </TableContainer>
   );
 };

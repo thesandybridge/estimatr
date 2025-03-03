@@ -11,12 +11,9 @@ const deleteLineItem = async ({ id, project_id }: DeleteLineItemInput) => {
 
   if (!id || !project_id) throw new Error("🚨 Invalid line item ID or project ID");
 
-  console.log("🗑️ Deleting line item:", { id, project_id });
-
   const { data: user, error: userError } = await supabase.auth.getUser();
   if (userError || !user) throw new Error("🚨 User not authenticated");
 
-  // Ensure user is a project member
   const { data: isMember, error: memberError } = await supabase
     .from("project_members")
     .select("member_id")
@@ -26,7 +23,6 @@ const deleteLineItem = async ({ id, project_id }: DeleteLineItemInput) => {
 
   if (memberError || !isMember) throw new Error("🚨 User is not a member of this project");
 
-  // Delete from Supabase
   const { error } = await supabase.from("line_items").delete().eq("id", id);
 
   if (error) {
@@ -34,7 +30,6 @@ const deleteLineItem = async ({ id, project_id }: DeleteLineItemInput) => {
     throw new Error(error.message);
   }
 
-  console.log("✅ Line item deleted successfully:", id);
   return { id, project_id };
 };
 
@@ -45,7 +40,6 @@ export default function useDeleteLineItem() {
     mutationFn: deleteLineItem,
 
     onMutate: async ({ id, project_id }) => {
-      console.log("⚡ Optimistically removing line item:", { id, project_id });
 
       await queryClient.cancelQueries(["line-items", project_id]);
 
@@ -69,7 +63,6 @@ export default function useDeleteLineItem() {
 
     onSettled: (_data, _error, { project_id }) => {
       if (project_id) {
-        console.log("🔄 Invalidating queries for project:", project_id);
         queryClient.invalidateQueries(["line-items", project_id]);
       }
     },

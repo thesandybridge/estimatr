@@ -18,36 +18,29 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const supabase = createClient();
 
-  const { data: user, isPending: userLoading } = useQuery({
-    queryKey: ["user"],
+  const { data, isPending } = useQuery({
+    queryKey: ["user_data"],
     queryFn: async () => {
-      const { data, error } = await supabase.auth.getUser();
-      if (error || !data?.user) {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData?.user) {
         router.replace("/login");
-        return null;
+        return { user: null, userOrg: null };
       }
-      return data.user;
+
+      const { data: orgData } = await supabase
+        .from("org_members")
+        .select("org_id")
+        .eq("member_id", userData.user.id)
+        .single();
+
+      return { user: userData.user, userOrg: orgData?.org_id ?? null };
     },
     staleTime: Infinity,
     retry: false,
   });
 
-  const { data: userOrg, isPending: orgLoading } = useQuery({
-    queryKey: ["user_org"],
-    queryFn: async () => {
-      if (!user) return null;
-      const { data: orgData } = await supabase
-        .from("org_members")
-        .select("org_id")
-        .eq("member_id", user.id)
-        .single();
-      return orgData?.org_id ?? null;
-    },
-    enabled: !!user,
-  });
-
   return (
-    <UserContext.Provider value={{ user, userOrg, loading: userLoading || orgLoading }}>
+    <UserContext.Provider value={{ user: data?.user, userOrg: data?.userOrg, loading: isPending }}>
       {children}
     </UserContext.Provider>
   );
