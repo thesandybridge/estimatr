@@ -1,8 +1,11 @@
 export interface Project {
-  id: string
+  id: number
   name: string
   uuid: string
   created_at: string
-  deadline: string,
+  deadline: string | null
+  ownerId: string
+  orgId: string | null
+  settings: T | null
 }
 

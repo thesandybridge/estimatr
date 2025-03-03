@@ -1,7 +1,10 @@
 import { redirect } from "next/navigation";
 
 import { createClient } from '@/utils/supabase/server'
-import ProjectDetails from "./components/ProjectDetails";
+import { ProjectProvider } from "./providers/ProjectProvider";
+import ProjectHeader from "./components/ProjectHeader";
+import ProjectSpeedDial from "./components/ProjectSpeedDial";
+import ProjectBody from "./components/ProjectBody";
 
 interface Props {
   params: { id: string };
@@ -23,6 +26,10 @@ export default async function Page({ params }: Props) {
   }
 
   return (
-    <ProjectDetails uuid={id} />
+    <ProjectProvider uuid={id}>
+      <ProjectHeader />
+      <ProjectBody />
+      <ProjectSpeedDial />
+    </ProjectProvider>
   );
 }

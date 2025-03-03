@@ -7,8 +7,9 @@ import { useRouter } from "next/navigation";
 import { User } from "@supabase/supabase-js";
 
 interface UserContextType {
-  user: User | null
-  loading: boolean
+  user: User | null;
+  userOrg: string | null;
+  loading: boolean;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -17,7 +18,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const supabase = createClient();
 
-  const { data, isPending } = useQuery({
+  const { data: user, isPending: userLoading } = useQuery({
     queryKey: ["user"],
     queryFn: async () => {
       const { data, error } = await supabase.auth.getUser();
@@ -31,8 +32,22 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     retry: false,
   });
 
+  const { data: userOrg, isPending: orgLoading } = useQuery({
+    queryKey: ["user_org"],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data: orgData } = await supabase
+        .from("org_members")
+        .select("org_id")
+        .eq("member_id", user.id)
+        .single();
+      return orgData?.org_id ?? null;
+    },
+    enabled: !!user,
+  });
+
   return (
-    <UserContext.Provider value={{ user: data, loading: isPending }}>
+    <UserContext.Provider value={{ user, userOrg, loading: userLoading || orgLoading }}>
       {children}
     </UserContext.Provider>
   );

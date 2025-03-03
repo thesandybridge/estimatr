@@ -1,7 +1,13 @@
 "use client";
 
 import { createContext, useState, useEffect, useMemo, useContext } from "react";
-import { ThemeProvider as MuiThemeProvider, createTheme, CssBaseline, PaletteMode } from "@mui/material";
+import {
+  ThemeProvider as MuiThemeProvider,
+  createTheme,
+  CssBaseline,
+  PaletteMode,
+} from "@mui/material";
+import { ThemeProvider as EmotionThemeProvider } from "@emotion/react";
 
 interface ThemeContextType {
   mode: PaletteMode;
@@ -41,15 +47,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     [mode]
   );
 
-  // 🔥 Avoid rendering anything until mode is initialized to prevent hydration errors
+  // 🔥 Avoid rendering until mode is initialized to prevent hydration errors
   if (mode === null) return null;
 
   return (
     <ThemeContext.Provider value={{ mode, toggleTheme }}>
-      <MuiThemeProvider theme={theme}>
-        <CssBaseline />
-        {children}
-      </MuiThemeProvider>
+      <EmotionThemeProvider theme={theme}> {/* ✅ Emotion ThemeProvider */}
+        <MuiThemeProvider theme={theme}> {/* ✅ MUI ThemeProvider */}
+          <CssBaseline />
+          {children}
+        </MuiThemeProvider>
+      </EmotionThemeProvider>
     </ThemeContext.Provider>
   );
 }

@@ -1,8 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
-import { useCreateProject } from '../hooks/useCreateProject'
 import Button from '@mui/material/Button'
 import Popover from '@mui/material/Popover'
 import TextField from '@mui/material/TextField'
@@ -13,6 +12,7 @@ import { Dayjs } from 'dayjs'
 import { SpeedDial, SpeedDialAction, SpeedDialIcon } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFolderPlus } from '@fortawesome/free-solid-svg-icons'
+import { useCreateProject } from '../../hooks/useCreateProject'
 
 
 interface Props {
@@ -24,7 +24,7 @@ interface ProjectFormData {
   deadline: Dayjs | null
 }
 
-export default function CreateProject({ owner }: Props) {
+const ProjectsSpeedDial = ({ owner }: Props) => {
   const { mutate: createProject, isPending } = useCreateProject()
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
   const [formData, setFormData] = useState<ProjectFormData>({
@@ -144,3 +144,5 @@ export default function CreateProject({ owner }: Props) {
     </>
   )
 }
+
+export default memo(ProjectsSpeedDial);

@@ -2,36 +2,64 @@ import { createClient } from "@/utils/supabase/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const addProjectMember = async ({ projectId, memberId }: { projectId: string; memberId: string }) => {
-  const supabase = await createClient();
+  const supabase = createClient();
 
-  // Check if the user is already in the project
-  const { data: existingMember } = await supabase
-    .from("project_members")
-    .select("member_id")
-    .eq("member_id", memberId)
-    .eq("project_id", projectId)
-    .single();
-
-  if (existingMember) throw new Error("User is already a member of this project");
-
-  // Insert the new member into the project_members table
   const { error: insertError } = await supabase
     .from("project_members")
     .insert({ member_id: memberId, project_id: projectId });
 
   if (insertError) throw new Error(insertError.message);
 
-  return { memberId };
+  const { data: userData, error: userError } = await supabase
+    .from("users")
+    .select("id, email, name, avatar_url")
+    .eq("id", memberId)
+    .single();
+
+  if (userError) throw new Error(userError.message);
+
+  return { projectId, user: userData };
 };
 
 export default function useAddProjectMember() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ projectId, memberId }: { projectId: string; memberId: string }) =>
-      await addProjectMember({ projectId, memberId }),
-    onSuccess: (_, { projectId }) => {
-      queryClient.invalidateQueries(["project_members", projectId]); // Refresh project members
+    mutationFn: addProjectMember,
+
+    onMutate: async ({ projectId, memberId }) => {
+      await queryClient.cancelQueries(["project_members", projectId]);
+
+      const previousMembers = queryClient.getQueryData(["project_members", projectId]);
+
+      const optimisticUser = {
+        id: memberId,
+        email: "Fetching...",
+        name: "Fetching...",
+        avatar_url: "",
+      };
+
+      queryClient.setQueryData(["project_members", projectId], (oldData: any) => {
+        return oldData ? [...oldData, optimisticUser] : [optimisticUser];
+      });
+
+      return { previousMembers };
+    },
+
+    onError: (_error, { projectId }, context) => {
+      if (context?.previousMembers) {
+        queryClient.setQueryData(["project_members", projectId], context.previousMembers);
+      }
+    },
+
+    onSuccess: ({ projectId, user }) => {
+      queryClient.setQueryData(["project_members", projectId], (oldData: any) => {
+        return oldData?.map((member: any) =>
+          member.id === user.id ? user : member
+        );
+      });
+
+      queryClient.invalidateQueries(["project_members", projectId]);
     },
   });
 }

@@ -1,17 +1,20 @@
 "use client";
 
+import { memo } from "react";
 import { Avatar, AvatarGroup, Tooltip, CircularProgress, Box, Typography } from "@mui/material";
-import useFetchProjectMembers from "../../hooks/useFetchProjectMembers";
-import useFetchUserOrg from "../../hooks/useFetchUserOrg"; // New hook to check org membership
+
+import useFetchProjectMembers from "@/app/projects/hooks/useFetchProjectMembers";
+import { useProject } from "../../providers/ProjectProvider";
+import { useUser } from "@/app/providers/UserProvider";
 
 interface Props {
-  projectId: string;
   maxAvatars?: number;
 }
 
-export default function ProjectMembers({ projectId, maxAvatars = 4 }: Props) {
+const ProjectMembers = ({ maxAvatars = 5 }: Props) => {
+  const { projectId } = useProject()
+  const { userOrg, loading: isOrgLoading } = useUser();
   const { data: members, isLoading, error } = useFetchProjectMembers(projectId);
-  const { data: userOrg, isLoading: isOrgLoading } = useFetchUserOrg(); // Fetch user's org status
 
   if (isLoading || isOrgLoading) {
     return (
@@ -52,3 +55,5 @@ export default function ProjectMembers({ projectId, maxAvatars = 4 }: Props) {
     </AvatarGroup>
   );
 }
+
+export default memo(ProjectMembers)

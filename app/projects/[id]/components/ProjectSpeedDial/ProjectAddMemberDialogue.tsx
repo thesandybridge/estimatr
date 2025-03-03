@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useState } from "react";
 import {
   Button,
   Dialog,
@@ -18,21 +18,19 @@ import {
   Typography,
 } from "@mui/material";
 
-import useFetchOrgMembers from "../../hooks/useFetchOrgMembers";
-import useAddProjectMember from "../../hooks/useAddProjectMember";
-import { useQueryClient } from "@tanstack/react-query";
+import useFetchOrgMembers from "@/app/projects/hooks/useFetchOrgMembers";
+import useAddProjectMember from "@/app/projects/hooks/useAddProjectMember";
+import { useProject } from "../../providers/ProjectProvider";
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  projectId: string;
-  ownerId: string;
 }
 
-export default function AddProjectMemberDialog({ open, onClose, projectId, ownerId }: Props) {
+const ProjectAddMemberDialogue = ({ open, onClose }: Props) => {
+  const { projectId, ownerId } = useProject();
   const { data: members, isLoading, error } = useFetchOrgMembers();
   const addMember = useAddProjectMember();
-  const queryClient = useQueryClient();
 
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
 
@@ -49,8 +47,7 @@ export default function AddProjectMemberDialog({ open, onClose, projectId, owner
       await Promise.all(
         selectedMembers.map((memberId) => addMember.mutateAsync({ projectId, memberId }))
       );
-      queryClient.invalidateQueries(["project_members", projectId]); // Refresh project members
-      setSelectedMembers([]); // Clear selection
+      setSelectedMembers([]);
       onClose();
     } catch (error) {
       console.error("Failed to add members:", error);
@@ -82,7 +79,7 @@ export default function AddProjectMemberDialog({ open, onClose, projectId, owner
                       <Checkbox
                         checked={selectedMembers.includes(member.id)}
                         onChange={() => handleToggleMember(member.id)}
-                        disabled={member.id === ownerId} // Disable selection for project owner
+                        disabled={member.id === ownerId}
                       />
                     </TableCell>
                     <TableCell>{member.name ?? "N/A"}</TableCell>
@@ -105,3 +102,5 @@ export default function AddProjectMemberDialog({ open, onClose, projectId, owner
     </Dialog>
   );
 }
+
+export default memo(ProjectAddMemberDialogue);

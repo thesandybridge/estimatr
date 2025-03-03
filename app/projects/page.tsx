@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation'
-
 import { createClient } from '@/utils/supabase/server'
-import CreateProject from './components/CreateProject'
+
 import ProjectsTable from './components/ProjectsTable'
+import ProjectsSpeedDial from './components/ProjectsSpeedDial'
 import styles from './styles.module.css'
 
 
@@ -16,7 +16,7 @@ export default async function Page() {
 
   return (
     <div className={styles.container}>
-      <CreateProject owner={data?.user.id} />
+      <ProjectsSpeedDial owner={data?.user.id} />
       <ProjectsTable userId={data?.user.id} />
     </div>
   )
