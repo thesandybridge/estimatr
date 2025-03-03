@@ -1,16 +1,32 @@
 "use client";
 
-import { LineItem } from "@/lib/lineItems";
 import { createClient } from "@/utils/supabase/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { LineItem } from "@/lib/lineItems";
 
-const deleteLineItem = async (id: string) => {
+type DeleteLineItemInput = { id: string; project_id: string };
+
+const deleteLineItem = async ({ id, project_id }: DeleteLineItemInput) => {
   const supabase = await createClient();
 
-  if (!id) throw new Error("🚨 Invalid line item ID");
+  if (!id || !project_id) throw new Error("🚨 Invalid line item ID or project ID");
 
-  console.log("🗑️ Deleting line item:", id);
+  console.log("🗑️ Deleting line item:", { id, project_id });
 
+  const { data: user, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) throw new Error("🚨 User not authenticated");
+
+  // Ensure user is a project member
+  const { data: isMember, error: memberError } = await supabase
+    .from("project_members")
+    .select("member_id")
+    .eq("project_id", project_id)
+    .eq("member_id", user.user.id)
+    .single();
+
+  if (memberError || !isMember) throw new Error("🚨 User is not a member of this project");
+
+  // Delete from Supabase
   const { error } = await supabase.from("line_items").delete().eq("id", id);
 
   if (error) {
@@ -19,7 +35,7 @@ const deleteLineItem = async (id: string) => {
   }
 
   console.log("✅ Line item deleted successfully:", id);
-  return id;
+  return { id, project_id };
 };
 
 export default function useDeleteLineItem() {
@@ -27,31 +43,35 @@ export default function useDeleteLineItem() {
 
   return useMutation({
     mutationFn: deleteLineItem,
-    onMutate: async (id) => {
-      console.log("⚡ Optimistically removing line item:", id);
 
-      await queryClient.cancelQueries(["line-items"]);
+    onMutate: async ({ id, project_id }) => {
+      console.log("⚡ Optimistically removing line item:", { id, project_id });
 
-      const previousLineItems = queryClient.getQueryData<string[]>(["line-items"]);
+      await queryClient.cancelQueries(["line-items", project_id]);
 
-      queryClient.setQueryData(["line-items"], (old: LineItem[] = []) =>
+      const previousLineItems = queryClient.getQueryData<LineItem[]>(["line-items", project_id]);
+
+      queryClient.setQueryData(["line-items", project_id], (old: LineItem[] = []) =>
         old.filter((item) => item.id !== id)
       );
 
       return { previousLineItems };
     },
-    onError: (_error, id, context) => {
+
+    onError: (_error, { id, project_id }, context) => {
       console.error("❌ Error deleting line item:", _error);
 
-      // Rollback if delete fails
       if (context?.previousLineItems) {
-        console.log("🔄 Rolling back deletion...");
-        queryClient.setQueryData(["line-items"], context.previousLineItems);
+        console.log("🔄 Rolling back deletion...", { id, project_id });
+        queryClient.setQueryData(["line-items", project_id], context.previousLineItems);
       }
     },
-    onSettled: () => {
-      console.log("🔄 Invalidating line items query...");
-      queryClient.invalidateQueries(["line-items"]);
+
+    onSettled: (_data, _error, { project_id }) => {
+      if (project_id) {
+        console.log("🔄 Invalidating queries for project:", project_id);
+        queryClient.invalidateQueries(["line-items", project_id]);
+      }
     },
   });
 }

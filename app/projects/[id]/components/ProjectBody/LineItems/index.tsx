@@ -55,7 +55,7 @@ const LineItems = () => {
   };
 
   const handleDelete = (id: string) => {
-    deleteLineItem(id);
+    deleteLineItem({ id, project_id: projectId });
   };
 
   if (isLoading) return <CircularProgress />;
