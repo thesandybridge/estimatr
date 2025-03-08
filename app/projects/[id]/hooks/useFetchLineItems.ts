@@ -15,7 +15,8 @@ const fetchLineItems = async (projectId: string): Promise<LineItem[]> => {
   const { data: lineItems, error: lineItemsError } = await supabase
     .from("line_items")
     .select("*")
-    .eq("project_id", projectId);
+    .eq("project_id", projectId)
+    .order("created_at", { ascending: true });
 
   if (lineItemsError) throw new Error(lineItemsError.message);
 

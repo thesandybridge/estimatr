@@ -19,6 +19,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
 
   const { data, isPending } = useQuery({
+    enabled: async () => {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      return userError || userData?.user
+    },
     queryKey: ["user_data"],
     queryFn: async () => {
       const { data: userData, error: userError } = await supabase.auth.getUser();

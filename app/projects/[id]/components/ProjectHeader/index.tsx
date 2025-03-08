@@ -8,6 +8,7 @@ import ProjectMembers from "./ProjectMembers";
 import { useProject } from "../../providers/ProjectProvider";
 import ProjectTitle from "./ProjectTitle";
 import ProjectDatePicker from "./ProjectDatePicker";
+import { Skeleton } from "@mui/material";
 
 const styles = {
   wrapper: css({
@@ -29,7 +30,7 @@ const ProjectHeader = () => {
   const { userOrg, loading: isOrgLoading } = useUser();
 
 
-  if (isPending || isOrgLoading) return <p>Loading...</p>;
+  if (isPending || isOrgLoading) return <Skeleton />;
   if (!project) return null;
 
   return (

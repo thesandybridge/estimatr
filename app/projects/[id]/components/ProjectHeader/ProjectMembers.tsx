@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { Avatar, AvatarGroup, Tooltip, CircularProgress, Box, Typography } from "@mui/material";
+import { Avatar, AvatarGroup, Tooltip, Typography, Skeleton } from "@mui/material";
 
 import useFetchProjectMembers from "@/app/projects/hooks/useFetchProjectMembers";
 import { useProject } from "../../providers/ProjectProvider";
@@ -18,10 +18,24 @@ const ProjectMembers = ({ maxAvatars = 5 }: Props) => {
 
   if (isLoading || isOrgLoading) {
     return (
-      <Box display="flex" alignItems="center">
-        <CircularProgress size={24} />
-        <Typography variant="body2" sx={{ ml: 1 }}>Loading members...</Typography>
-      </Box>
+      <AvatarGroup max={maxAvatars}>
+        {[...Array(4)].map((_, index) => (
+          <Tooltip key={index} title="Loading...">
+            <Avatar>
+              <Skeleton
+                variant="circular"
+                width="100%"
+                height="100%"
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                }}
+              />
+            </Avatar>
+          </Tooltip>
+        ))}
+      </AvatarGroup>
     );
   }
 

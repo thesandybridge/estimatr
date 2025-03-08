@@ -8,6 +8,7 @@ import useUpdateProject from "@/app/projects/hooks/useUpdateProject";
 import { css } from "@emotion/react";
 
 import { useProject } from "../../providers/ProjectProvider";
+import { Skeleton } from "@mui/material";
 
 const styles = {
   editableTitle: css({
@@ -87,7 +88,7 @@ const ProjectTitle = () => {
     setIsEditingTitle(false);
   }, [editor, project, updateProject, projectId]);
 
-  if (isPending) return <p>Loading...</p>;
+  if (isPending) return <Skeleton width="100%" />;
   if (!project) return null;
 
   return (

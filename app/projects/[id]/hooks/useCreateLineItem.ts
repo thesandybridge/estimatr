@@ -34,6 +34,7 @@ const createLineItem = async (input: CreateLineItemInput) => {
       complexity: input.complexity,
       estimated_hours: input.estimated_hours,
       status: input.status,
+      is_editing: true,
     }])
     .select();
 
@@ -63,7 +64,7 @@ export default function useCreateLineItem() {
       queryClient.setQueryData(["line-items", newLineItem.project_id], (old: LineItem[] = []) => [
         ...old,
         { ...newLineItem,
-          id: crypto.randomUUID(),
+          id: 'temp-' + crypto.randomUUID(),
           created_at: new Date().toISOString()
         },
       ]);

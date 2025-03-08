@@ -10,11 +10,12 @@ import dayjs from "dayjs";
 interface Props {
   lineItem: LineItem;
   onDelete: (id: string) => void;
+  onEdit: (id: string, isEditing: boolean) => void;
   onSave: (updatedItem: LineItem) => void;
 }
 
-const LineItem = ({ lineItem, onDelete, onSave }: Props) => {
-  const [isEditing, setIsEditing] = useState(lineItem.id.startsWith("temp-"));
+const LineItem = ({ lineItem, onDelete, onSave, onEdit }: Props) => {
+  const [isEditing, setIsEditing] = useState(lineItem.is_editing === true);
   const [editableItem, setEditableItem] = useState<LineItem>({
     ...lineItem,
     startDate: lineItem.start_date ? dayjs(lineItem.start_date) : null,
@@ -108,11 +109,17 @@ const LineItem = ({ lineItem, onDelete, onSave }: Props) => {
       {/* Actions */}
       <TableCell>
         {isEditing ? (
-          <IconButton onClick={() => onSave(editableItem)}>
+          <IconButton onClick={() => {
+            onSave(editableItem);
+            setIsEditing(false);
+          }}>
             <FontAwesomeIcon icon={faSave} />
           </IconButton>
         ) : (
-          <IconButton onClick={() => setIsEditing(true)}>
+          <IconButton onClick={() => {
+              setIsEditing(true)
+              onEdit(lineItem.id, true)
+            }}>
             <FontAwesomeIcon icon={faEdit} />
           </IconButton>
         )}
