@@ -65,7 +65,8 @@ export default function useCreateLineItem() {
         ...old,
         { ...newLineItem,
           id: 'temp-' + crypto.randomUUID(),
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
+          is_editing: true,
         },
       ]);
 
