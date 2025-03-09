@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSave, faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { LineItem } from "@/lib/lineItems";
 import dayjs from "dayjs";
+import { DateTimePicker } from "@mui/x-date-pickers";
 
 interface Props {
   lineItem: LineItem;
@@ -32,7 +33,7 @@ const LineItem = ({ lineItem, onDelete, onSave, onEdit }: Props) => {
   return (
     <TableRow>
       {/* Name Field */}
-      <TableCell>
+      <TableCell sx={{ minWidth: '200px' }}>
         <TextField
           value={editableItem.name || ""}
           onChange={(e) => handleChange("name", e.target.value)}
@@ -42,34 +43,60 @@ const LineItem = ({ lineItem, onDelete, onSave, onEdit }: Props) => {
       </TableCell>
 
       {/* Start Date Field */}
-      <TableCell>
-        <TextField
-          type="date"
-          value={editableItem.start_date ? dayjs(editableItem.start_date).format("YYYY-MM-DD") : ""}
-          onChange={(e) => handleChange("start_date", dayjs(e.target.value))}
-          fullWidth
+      <TableCell sx={{ width: '200px', minWidth: '150px' }}>
+        <DateTimePicker
           disabled={!isEditing}
+          value={editableItem.start_date ? dayjs(editableItem.start_date) : null}
+          onChange={(newValue) => handleChange("start_date", newValue)}
+          format="MM-DD-YYYY"
+          slotProps={{
+            textField: {
+              size: "small",
+              variant: "outlined",
+              fullWidth: true
+            }
+          }}
         />
       </TableCell>
 
       {/* End Date Field */}
-      <TableCell>
-        <TextField
-          type="date"
-          value={editableItem.end_date ? dayjs(editableItem.end_date).format("YYYY-MM-DD") : ""}
-          onChange={(e) => handleChange("end_date", dayjs(e.target.value))}
-          fullWidth
+      <TableCell sx={{ width: '200px', minWidth: '150px' }}>
+        <DateTimePicker
           disabled={!isEditing}
+          value={editableItem.end_date ? dayjs(editableItem.end_date) : null}
+          onChange={(newValue) => handleChange("end_date", newValue)}
+          format="MM-DD-YYYY"
+          slotProps={{
+            textField: {
+              size: "small",
+              variant: "outlined",
+              fullWidth: true
+            }
+          }}
         />
       </TableCell>
 
       {/* Estimated Hours Field (Number) */}
-      <TableCell>
+      <TableCell sx={{ width: '125px' }}>
         <TextField
-          type="number"
-          value={editableItem.estimated_hours!== undefined ? editableItem.estimated_hours: ""}
-          onChange={(e) => handleChange("estimated_hours", e.target.value ? parseFloat(e.target.value) : 0)}
-          fullWidth
+          type="text"
+          inputProps={{
+            inputMode: "decimal",
+            pattern: "[0-9]*[.]?[0-9]*"
+          }}
+          value={isEditing ? editableItem.estimated_hours?.toString() || "" : (editableItem.estimated_hours || "0")}
+          onChange={(e) => {
+            const value = e.target.value;
+            if (value === "" || /^\d*\.?\d*$/.test(value)) {
+              handleChange("estimated_hours", value === "" ? 0 : value);
+            }
+          }}
+          onBlur={(e) => {
+            const value = e.target.value;
+            handleChange("estimated_hours", value === "" ? 0 : parseFloat(value));
+          }}
+          sx={{ maxWidth: '150px' }}
+          size="small"
           disabled={!isEditing}
         />
       </TableCell>

@@ -58,7 +58,7 @@ const LineItems = () => {
               <TableCell>Name</TableCell>
               <TableCell>Start Date</TableCell>
               <TableCell>End Date</TableCell>
-              <TableCell>Estimated Hours</TableCell>
+              <TableCell>Days</TableCell>
               <TableCell>Complexity</TableCell>
               <TableCell>Status</TableCell>
               <TableCell>Actions</TableCell>
@@ -93,7 +93,7 @@ const LineItems = () => {
             <TableCell>Name</TableCell>
             <TableCell>Start Date</TableCell>
             <TableCell>End Date</TableCell>
-            <TableCell>Estimated Hours</TableCell>
+            <TableCell>Days</TableCell>
             <TableCell>Complexity</TableCell>
             <TableCell>Status</TableCell>
             <TableCell>Actions</TableCell>
